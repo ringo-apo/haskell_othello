@@ -8,6 +8,7 @@ import Text.Regex.Posix
 import Data.Array
 import Data.Array.Unboxed
 import Text.Show.Unicode
+import System.Random.MWC
 
 
 readInt :: String -> Maybe Int
@@ -443,7 +444,7 @@ func1 bd = do
 -- 黒番
     putStrLn("黒番です")
     bd2 <- func3 bd
-
+--    func8 bd2
     let bd = bd2
 
 -- 白版
@@ -457,6 +458,24 @@ func1 bd = do
     let okeruListLen = length okeruList
     bd2 <- func7 bd okeruList okeruListLen 5 
     func8 bd2    -- 表示処理
+
+-- 置き場所を選ぶ
+    gen <- createSystemRandom
+    okibasyoNum <- uniformR(1,okeruListLen) gen :: IO Int
+
+    putStrLn("置き場所 = " ++ show (okeruList !! (okibasyoNum-1)))    
+
+    let okibasyo = okeruList !! (okibasyoNum-1)
+
+    let bd3 = bd2 Data.Array.Unboxed.// [(okibasyo,3)]
+--    putStrLn("bd3 = " ++ show bd3)
+
+    func8 bd3
+-- ひっくり返し処理
+
+-- 黒番に戻る
+    func1 bd3
+
 
 main :: IO ()
 main = do

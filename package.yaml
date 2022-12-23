@@ -24,7 +24,7 @@ dependencies:
 - regex-posix
 - array
 - unicode-show
-
+- mwc-random
 
 ghc-options:
 - -Wall
