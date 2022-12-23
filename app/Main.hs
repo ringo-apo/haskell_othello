@@ -55,83 +55,63 @@ func12 bd (y,x) i s status = do
 
     status4 <- if y<1 || y>8 || x<1 || x>8
                    then do
-                            print "ng"
                             return Nothing
                    else do
                             let atai3 = bd Data.Array.Unboxed.! (y,x)
-                            print ("atai3 = " ++ show atai3)
                             status3 <- case atai3 of
 -- コマなし
                                            2 -> do
-                                                    print "ng kuro nasi. 結果確定"
                                                     return Nothing
 
 -- 白。挟めている
                                            3 -> do
-                                                    print "ok"
                                                     return (Just True)
 
 -- 黒。相手のコマが続くので更に調べる　再帰
                                            4 -> do
-                                                    print "continue"
 
                                                     let (sy,sx) = (s !! i)
---                                                  putStrLn("sy = " ++ show sy)
---                                                  putStrLn("sx = " ++ show sx)
 
                                                     let y2 = y + sy
---                                                  putStrLn("y2 = " ++ show y2)
 
                                                     let x2 = x + sx
---                                                  putStrLn("x2 = " ++ show x2)
 
                                                     let pos4 = (y2,x2)
---                                                  putStrLn("pos4 = " ++ show pos4)
 
                                                     status2 <- func12 bd pos4 i s status
                                                     return status2
 
                                            _ -> do
-                                                    print "error"
                                                     return Nothing
                             return status3
     return status4
 
 
 -- x方向を調べる。そこにコマがあるかないか？
-func11 :: UArray (Int,Int) Int -> Int -> Int -> UArray (Int,Int) Int -> IO([(Int,Int)])
+-- func11 :: UArray (Int,Int) Int -> Int -> Int -> UArray (Int,Int) Int -> [(Int,Int)]
 func11 bd py px okeruList = do
     okeruList4 <- if px == 0
                       then do
                                return okeruList
                       else do
---                             putStrLn("py = " ++ show py ++ ", px = " ++ show px)
                                let atai = bd Data.Array.Unboxed.! (py,px)
---                             putStrLn("atai = "  ++ show atai)
 
                                okeruList3 <- case atai of
                                                  2 -> do
---                                                        putStrLn("コマなし。処理継続")
---                                                        putStrLn("py = " ++ show py ++ ", px = " ++ show px)
---                                                        putStrLn("atai = "  ++ show atai)
-
                                                           kekka <- func9 bd py px (mukiLen-1) (Nothing)    -- 周りを知らべる
-                                                          okeruList2 <- case kekka of
-                                                                            Just True -> okeruList ++ (py,px)
+                                                          let okeruList2 = case kekka of
+                                                                            Just True -> okeruList ++ [(py, px)]
                                                                             Just False -> okeruList
                                                                             Nothing -> okeruList
                                                                             _ -> okeruList
                                                           return okeruList2
 
                                                  3 -> do
---                                                        putStrLn("白あり。処理終了")
                                                           return okeruList
 
                                                  4 -> do
---                                                        putStrLn("黒あり。処理終了")
                                                           return okeruList
                                                  _ -> do
---                                                        putStrLn("その他。処理終了")
                                                           return okeruList
 
                                func11 bd py (px-1) okeruList3
@@ -151,31 +131,23 @@ func10 bd py px okeruList = do
     return okeruList4
 
 -- 周りを調べる
--- func9 :: UArray (Int,Int) Int -> Int -> Int -> Int -> Maybe Bool -> IO(Maybe Bool)
+func9 :: UArray (Int,Int) Int -> Int -> Int -> Int -> Maybe Bool -> IO(Maybe Bool)
 func9 bd py px mukii status = do
---     putStrLn("mukii = " ++ show mukii)
     status5 <- if mukii == -1 || status == (Just True)
                    then do
---                          putStrLn("処理終了")
                             return status
                    else do
                             let (piy,pix) = muki !! mukii
---                          putStrLn("piy = " ++ show piy ++ ", pix = " ++ show pix)
                             let pmy = py + piy
                             let pmx = px + pix
                             let ataim = bd Data.Array.Unboxed.! (pmy,pmx)
                             status3 <- case ataim of
                                            4 -> do -- 黒
-                                                    putStrLn("相手のコマあり。処理継続")
-                                                    putStrLn("py = "++ show py ++ ", px = " ++ show px)
-                                                    putStrLn("mukii = " ++ show mukii)
-                                                    putStrLn("piy = " ++ show piy ++ ", pix = " ++ show pix)
 -- 隣の隣を調べる
                                                     status2 <- func12 bd (pmy,pmx) mukii muki status    -- 継続操作
                                                     return status2
 
                                            _ -> do
---                                                  putStrLn("処理終了")
                                                     return status
 
 
@@ -275,16 +247,14 @@ func8 bd = do
 
 
 -- ひっくり返し処理
-func7 bd hkrListKekka hkrListKekkaLen = do
+func7 bd hkrListKekka hkrListKekkaLen atai = do
     bd3 <- if hkrListKekkaLen == 0
                then do
                         return bd
                else do
                         let (posY, posX) = (hkrListKekka !! 0)
-                        let atai = 4
                         let bd2 = bd Data.Array.Unboxed.// [((hkrListKekka !! 0),atai)]
-                        putStrLn("bd2 = " ++ show bd2)
-                        func7 bd2 (tail hkrListKekka) (hkrListKekkaLen-1)
+                        func7 bd2 (tail hkrListKekka) (hkrListKekkaLen-1) atai
     return bd3
 
 
@@ -294,112 +264,81 @@ func6 bd (y,x) hkrList2 i s = do
 
     if y<1 || y>8 || x<1 || x>8
         then do
-                 print "ng"
                  return []
         else do
                 let atai3 = bd Data.Array.Unboxed.! (y,x)
-                print ("atai3 = " ++ show atai3)
                 case atai3 of
                     2 -> do
-                             print "ng kuro nasi"
                              return []
 
 -- 挟めている
                     4 -> do
-                             print "ok"
                              return hkrList2
 
 -- 相手のコマが続くので更に調べる　再帰
                     3 -> do
-                             print "continue"
                              let hkrList3 = hkrList2 ++ [(y,x)]
 
                              let (sy,sx) = (s !! i)
-                             putStrLn("sy = " ++ show sy)
-                             putStrLn("sx = " ++ show sx)
 
                              let y2 = y + sy
-                             putStrLn("y2 = " ++ show y2)
 
                              let x2 = x + sx
-                             putStrLn("x2 = " ++ show x2)
 
                              let pos4 = (y2,x2)
-                             putStrLn("pos4 = " ++ show pos4)
 
                              func6 bd pos4 hkrList3 i s
 
                     _ -> do
-                             print "error"
                              return []
 
 -- 隣を調べる、隣が相手の駒なら、その隣をfunc6で調べる　すべての方向を調べる
 func5 :: (UArray (Int, Int) Int) -> Int -> (Int, Int) -> [(Int, Int)] -> Int -> [(Int, Int)] -> [(Int, Int)] -> IO  [(Int,Int)]
 func5 bd i (pyn,pxn) s sLen hkrWorkList hkrFinalList  = do
-    putStrLn("bd = " ++ show bd)
-    putStrLn("i = " ++ show i)
 
     hkrList7 <- if i == sLen
         then do
                  return hkrFinalList
         else do
                let (y,x) = s !! i
-               putStrLn("y = " ++ show y)
-               putStrLn("x = " ++ show x)
 
                let posY2 = pyn + y
-               putStrLn("posY2 = " ++ show posY2)
 
                let posX2 = pxn + x
-               putStrLn("posX2 = " ++ show posX2)
-
 
                hkrList5 <- if posY2<1 || posY2>8 || posX2<1 || posX2>8
                                then do
                                         return []
                                else do
                                         let atai = bd Data.Array.Unboxed.! (posY2, posX2)
-                                        putStrLn("atai = " ++ show atai)
 
                                         hkrList4 <- case atai of
 
 -- コマなし
                                                         2 -> do
-                                                                 print "ng. koma nasi"
                                                                  return []
 -- 黒
                                                         4 -> do
-                                                                 print "ng. siro nai"
                                                                  return []
 
 -- 白
                                                         3 -> do
-                                                                 print "continue"
-
                                                                  let hkrList2 = [(pyn, pxn), (posY2, posX2)]
-                                                                 putStrLn("hkrList2 = " ++ show hkrList2)
 
                                                                  let pos3 = (posY2 + y, posX2 + x)
-                                                                 putStrLn("pos3 = " ++ show pos3)
 
                                                                  hkrList3 <- func6 bd pos3 hkrList2 i s
-                                                                 putStrLn("hkrList3 = " ++ show hkrList3)
 
                                                                  return hkrList3
 
                                                         _ -> do
                                                                  return []
-                                        putStrLn("hkrList4 = " ++ show hkrList4)
                                         return hkrList4
 
-               putStrLn("hkrList5 = " ++ show hkrList5)
-
                let hkrList6 = hkrFinalList ++ hkrList5
-               putStrLn("hkrList6 = " ++ show hkrList6)
 
                func5 bd (i+1) (pyn, pxn) s sLen hkrWorkList hkrList6
 
-    putStrLn("hkrList7 = " ++ show hkrList7)
     return hkrList7
 
 -- コード　→　表示文字　への変換
@@ -422,22 +361,17 @@ func3 bd = do
            , ( 1, 0) -- 6:下
            , ( 1, 1) -- 7:右下
             ]
-    putStrLn("s = " ++ show s)
 
     let sLen = length s
-    putStrLn("sLen = " ++ show sLen)
 
     command <- func2
     putStrLn("command = " ++ command)
 
     let py = command !! 1 -- ２文字目　Ｙ座標
-    putStrLn("py = " ++ show py)
 
     let pyn = read [py] :: Int
-    putStrLn("pyn = " ++ show [pyn])
 
     let pxa = command !! 0 -- １文字目　Ｘ座標
-    putStrLn("pxa = " ++ show pxa)
 
     let px = case pxa of
                         'a' -> '1'
@@ -450,44 +384,34 @@ func3 bd = do
                         'h' -> '8'
                         _   -> '0'
 
-    putStrLn ("px=" ++ show px)
-
     let pxn = read [px] :: Int
-    putStrLn("pxn =" ++ show [pxn])
 
     let a = bd Data.Array.Unboxed.! (pyn, pxn) -- 選択場所の値を取得
-    putStrLn(show a)
 
     case a of
 -- 白石あり
         3 -> do
-                 putStrLn "白石があるので置けません"
                  func3 bd -- このファンクションの最初に戻る
 
 -- 黒石あり
         4 -> do
-                 putStrLn "黒石があるので置けません"
                  func3 bd -- このファンクションの最初に戻る
 
 -- コマなし
         2 -> do
-                 putStrLn "そこには何もない。処理を続ける"
                  let hkrWorkList = []
                  let hkrFinalList = []
                  hkrListKekka <- func5 bd 0 (pyn, pxn) s sLen hkrWorkList hkrFinalList
-                 print ("hkrListKekka = " ++ show hkrListKekka)
 
 -- ひっくり返し処理
                  let hkrListKekkaLen = length hkrListKekka
-                 bd2 <- func7 bd hkrListKekka hkrListKekkaLen
-                 putStrLn("bd2 = " ++ show bd2)
+                 bd2 <- func7 bd hkrListKekka hkrListKekkaLen 4
 
-                 func8 bd2
+                 func8 bd2    -- 表示処理
 
                  return bd2
 
         _ -> do
-                 putStrLn "例外処理"
                  return bd
 
 
@@ -514,26 +438,25 @@ func2 = do
 -- start
 func1 bd = do
 
-    func8 bd
+    func8 bd    -- 表示処理
 
 -- 黒番
     putStrLn("黒番です")
     bd2 <- func3 bd
 
     let bd = bd2
-    putStrLn("bd=" ++ show bd)
 
 -- 白版
     putStrLn("白番です")
 -- 置けるところを探す
     let py = 8
     let px = 8
---     putStrLn("py = " ++ show py ++ ", px = " ++ show px)
-
 
     okeruList <- func10 bd py px []
-    putStrLn("okeruList = " ++ show okeruList)
-
+-- 置けるところに「！」を表示する
+    let okeruListLen = length okeruList
+    bd2 <- func7 bd okeruList okeruListLen 5 
+    func8 bd2    -- 表示処理
 
 main :: IO ()
 main = do
