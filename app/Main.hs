@@ -51,8 +51,8 @@ mukiLen = length muki
 
 
 -- 隣の隣を調べる
-func12 :: UArray (Int,Int) Int -> (Int, Int) -> Int -> [(Int, Int)] -> Maybe Bool -> IO (Maybe Bool)
-func12 bd (y,x) i s status = do
+func12 :: UArray (Int,Int) Int -> (Int, Int) -> Int -> [(Int, Int)] -> Maybe Bool -> Int -> Int -> IO (Maybe Bool)
+func12 bd (y,x) i s status jibun aite = do
 
     status4 <- if y<1 || y>8 || x<1 || x>8
                    then do
@@ -60,16 +60,13 @@ func12 bd (y,x) i s status = do
                    else do
                             let atai3 = bd Data.Array.Unboxed.! (y,x)
                             status3 <- case atai3 of
--- コマなし
-                                           2 -> do
+                                           2 -> do    -- コマなし
                                                     return Nothing
 
--- 白。挟めている
-                                           3 -> do
+                                           jibun -> do    -- 自分と同じ色のコマあり。挟めている
                                                     return (Just True)
 
--- 黒。相手のコマが続くので更に調べる　再帰
-                                           4 -> do
+                                           aite -> do    -- 相手と同じ色のコマあり。相手のコマが続くので更に調べる　再帰
 
                                                     let (sy,sx) = (s !! i)
 
@@ -79,7 +76,7 @@ func12 bd (y,x) i s status = do
 
                                                     let pos4 = (y2,x2)
 
-                                                    status2 <- func12 bd pos4 i s status
+                                                    status2 <- func12 bd pos4 i s status jibun aite
                                                     return status2
 
                                            _ -> do
@@ -89,8 +86,8 @@ func12 bd (y,x) i s status = do
 
 
 -- x方向を調べる。そこにコマがあるかないか？
--- func11 :: UArray (Int,Int) Int -> Int -> Int -> UArray (Int,Int) Int -> [(Int,Int)]
-func11 bd py px okeruList = do
+-- func11 :: UArray (Int,Int) Int -> Int -> Int -> UArray (Int,Int) Int -> Int -> Int -> [(Int,Int)]
+func11 bd py px okeruList jibun aite = do
     okeruList4 <- if px == 0
                       then do
                                return okeruList
@@ -99,7 +96,7 @@ func11 bd py px okeruList = do
 
                                okeruList3 <- case atai of
                                                  2 -> do
-                                                          kekka <- func9 bd py px (mukiLen-1) (Nothing)    -- 周りを知らべる
+                                                          kekka <- func9 bd py px (mukiLen-1) (Nothing) jibun aite    -- 周りを知らべる
                                                           let okeruList2 = case kekka of
                                                                             Just True -> okeruList ++ [(py, px)]
                                                                             Just False -> okeruList
@@ -107,33 +104,33 @@ func11 bd py px okeruList = do
                                                                             _ -> okeruList
                                                           return okeruList2
 
-                                                 3 -> do
+                                                 jibun -> do    -- 自分と同じ色のコマ 
                                                           return okeruList
 
-                                                 4 -> do
+                                                 aite -> do    -- 相手と同じ色のコマ
                                                           return okeruList
                                                  _ -> do
                                                           return okeruList
 
-                               func11 bd py (px-1) okeruList3
+                               func11 bd py (px-1) okeruList3 jibun aite
     return okeruList4
 
 
 -- y方向を調べる
--- func10 :: UArray (Int,Int) Int -> Int -> Int UArray (Int,Int) Int -> IO([(Int,Int)]) 
-func10 bd py px okeruList = do
+-- func10 :: UArray (Int,Int) Int -> Int -> Int UArray (Int,Int) Int -> Int -> Int -> IO([(Int,Int)]) 
+func10 bd py px okeruList jibun aite = do
     okeruList4 <- if py == 0 
                       then do
                                return okeruList
                       else do
-                               okeruList2 <- func11 bd py px okeruList
-                               okeruList3 <- func10 bd (py-1) px okeruList2
+                               okeruList2 <- func11 bd py px okeruList jibun aite
+                               okeruList3 <- func10 bd (py-1) px okeruList2 jibun aite
                                return okeruList3
     return okeruList4
 
 -- 周りを調べる
-func9 :: UArray (Int,Int) Int -> Int -> Int -> Int -> Maybe Bool -> IO(Maybe Bool)
-func9 bd py px mukii status = do
+func9 :: UArray (Int,Int) Int -> Int -> Int -> Int -> Maybe Bool -> Int -> Int -> IO(Maybe Bool)
+func9 bd py px mukii status jibun aite = do
     status5 <- if mukii == -1 || status == (Just True)
                    then do
                             return status
@@ -143,21 +140,22 @@ func9 bd py px mukii status = do
                             let pmx = px + pix
                             let ataim = bd Data.Array.Unboxed.! (pmy,pmx)
                             status3 <- case ataim of
-                                           4 -> do -- 黒
+                                           aite -> do -- 相手と同じ色のコマあり
 -- 隣の隣を調べる
-                                                    status2 <- func12 bd (pmy,pmx) mukii muki status    -- 継続操作
+                                                    status2 <- func12 bd (pmy,pmx) mukii muki status jibun aite    -- 継続操作
                                                     return status2
 
                                            _ -> do
                                                     return status
 
 
-                            status4 <- func9 bd py px (mukii-1) status3   -- 次の方向を調べる
+                            status4 <- func9 bd py px (mukii-1) status3 jibun aite    -- 次の方向を調べる
                             return status4
     return status5
 
 
 -- 表示処理
+func8 :: UArray (Int,Int) Int -> IO()
 func8 bd = do
     putStrLn ("　　ａ　ｂ　ｃ　ｄ　ｅ　ｆ　ｇ　ｈ　Ｘ")
     putStrLn ("　＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊")
@@ -247,61 +245,59 @@ func8 bd = do
     putStrLn ("[●] 2:White")
 
 
--- ひっくり返し処理
+-- 盤面変更処理
+-- func7 UArray (Int, Int) Int -> [(Int, Int)] -> Int -> Int -> IO(UArray (Int,Int) Int)
 func7 bd hkrListKekka hkrListKekkaLen atai = do
     bd3 <- if hkrListKekkaLen == 0
                then do
                         return bd
                else do
                         let (posY, posX) = (hkrListKekka !! 0)
-                        let bd2 = bd Data.Array.Unboxed.// [((hkrListKekka !! 0),atai)]
+                        let bd2 = bd Data.Array.Unboxed.// [((hkrListKekka !! 0), atai)]
                         func7 bd2 (tail hkrListKekka) (hkrListKekkaLen-1) atai
     return bd3
 
 
 -- 隣の隣以降を調べる。挟めているかどうか判定する
-func6 :: UArray (Int,Int) Int -> (Int, Int) -> [(Int, Int)] -> Int -> [(Int, Int)] -> IO ([(Int, Int)])
-func6 bd (y,x) hkrList2 i s = do
-
-    if y<1 || y>8 || x<1 || x>8
-        then do
-                 return []
-        else do
-                let atai3 = bd Data.Array.Unboxed.! (y,x)
-                case atai3 of
-                    2 -> do
+func6 :: (UArray (Int,Int) Int) -> (Int, Int) -> [(Int, Int)] -> Int -> [(Int, Int)] -> Int -> Int -> IO([(Int, Int)])
+func6 bd (y,x) hkrList2 i muki jibun aite = do
+    hkrList5 <- if y<1 || y>8 || x<1 || x>8
+                    then do
                              return []
-
--- 挟めている
-                    4 -> do
-                             return hkrList2
-
+                    else do
+                             let atai3 = bd Data.Array.Unboxed.! (y,x)
+                             hkrList4 <- case atai3 of
+                                             2     -> do
+                                                          return []
+-- 自分と同じ色のコマあり。挟めている
+                                             jibun -> do
+                                                          return hkrList2
 -- 相手のコマが続くので更に調べる　再帰
-                    3 -> do
-                             let hkrList3 = hkrList2 ++ [(y,x)]
+                                             aite  -> do
+                                                         let hkrList3 = hkrList2 ++ [(y,x)]
+                                                         let (sy,sx) = (muki !! i)
+                                                         let y2 = y + sy
+                                                         let x2 = x + sx
+                                                         let pos4 = (y2,x2)
+                                                         hkrList6 <- func6 bd pos4 hkrList3 i muki jibun aite
+--                                                          hkrList6 <- func6 bd pos4 [(1,1),(2,2)] i [(1,1),(2,2)] jibun aite
+                                                         return hkrList6
 
-                             let (sy,sx) = (s !! i)
+                                             _     -> return []
+                             return hkrList4
+--                              return ([(1,1),(2,2)])
+    return hkrList5
 
-                             let y2 = y + sy
-
-                             let x2 = x + sx
-
-                             let pos4 = (y2,x2)
-
-                             func6 bd pos4 hkrList3 i s
-
-                    _ -> do
-                             return []
 
 -- 隣を調べる、隣が相手の駒なら、その隣をfunc6で調べる　すべての方向を調べる
-func5 :: (UArray (Int, Int) Int) -> Int -> (Int, Int) -> [(Int, Int)] -> Int -> [(Int, Int)] -> [(Int, Int)] -> IO  [(Int,Int)]
-func5 bd i (pyn,pxn) s sLen hkrWorkList hkrFinalList  = do
+func5 :: (UArray (Int, Int) Int) -> Int -> (Int, Int) -> [(Int, Int)] -> Int -> [(Int, Int)] -> [(Int, Int)] -> Int -> Int -> IO  [(Int,Int)]
+func5 bd i (pyn,pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite = do
 
-    hkrList7 <- if i == sLen
+    hkrList7 <- if i == mukiLen
         then do
                  return hkrFinalList
         else do
-               let (y,x) = s !! i
+               let (y,x) = muki !! i
 
                let posY2 = pyn + y
 
@@ -318,17 +314,17 @@ func5 bd i (pyn,pxn) s sLen hkrWorkList hkrFinalList  = do
 -- コマなし
                                                         2 -> do
                                                                  return []
--- 黒
-                                                        4 -> do
+-- 自分と同じ石
+                                                        jibun -> do
                                                                  return []
 
--- 白
-                                                        3 -> do
+-- 相手と同じ石
+                                                        aite -> do
                                                                  let hkrList2 = [(pyn, pxn), (posY2, posX2)]
 
                                                                  let pos3 = (posY2 + y, posX2 + x)
 
-                                                                 hkrList3 <- func6 bd pos3 hkrList2 i s
+                                                                 hkrList3 <- func6 bd pos3 hkrList2 i muki jibun aite
 
                                                                  return hkrList3
 
@@ -338,7 +334,7 @@ func5 bd i (pyn,pxn) s sLen hkrWorkList hkrFinalList  = do
 
                let hkrList6 = hkrFinalList ++ hkrList5
 
-               func5 bd (i+1) (pyn, pxn) s sLen hkrWorkList hkrList6
+               func5 bd (i+1) (pyn, pxn) muki mukiLen hkrWorkList hkrList6 jibun aite
 
     return hkrList7
 
@@ -350,22 +346,25 @@ func4 ua1 = do
 
 
 -- そこにコマがないかどうか、なければfunc5に処理を移す
-func3 bd = do
-
+-- func3 :: UArray(Int, Int) Int -> Int -> Int -> IO(UArray (Int,Int) Int)
+func3 bd jibun aite = do
+    print ("aite =" ++ show aite)
 -- (y, x)
-    let s = [(-1,-1) -- 0:左上
-           , (-1, 0) -- 1:上
-           , (-1, 1) -- 2:右上
-           , ( 0,-1) -- 3:左
-           , ( 0, 1) -- 4:右
-           , ( 1,-1) -- 5:左下
-           , ( 1, 0) -- 6:下
-           , ( 1, 1) -- 7:右下
-            ]
+--     let s = [(-1,-1) -- 0:左上
+--            , (-1, 0) -- 1:上
+--            , (-1, 1) -- 2:右上
+--            , ( 0,-1) -- 3:左
+--            , ( 0, 1) -- 4:右
+--            , ( 1,-1) -- 5:左下
+--            , ( 1, 0) -- 6:下
+--            , ( 1, 1) -- 7:右下
+--             ]
 
-    let sLen = length s
+--     let sLen = length s
 
+    print ("aite = " ++ show aite)
     command <- func2
+    print ("aite = " ++ show aite)
     putStrLn("command = " ++ command)
 
     let py = command !! 1 -- ２文字目　Ｙ座標
@@ -388,32 +387,40 @@ func3 bd = do
     let pxn = read [px] :: Int
 
     let a = bd Data.Array.Unboxed.! (pyn, pxn) -- 選択場所の値を取得
+    print ("a = " ++ show a)
+    print ("aite = " ++ show aite)
 
-    case a of
--- 白石あり
-        3 -> do
-                 func3 bd -- このファンクションの最初に戻る
+-- 相手の同じ石あり
+    bd3 <- case a of
+--                aite -> do
+               3 -> do
+                           print ("aite = " ++ show aite)
+                           putStrLn( "相手の処理")
+                           bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
+                           return bd4
 
--- 黒石あり
-        4 -> do
-                 func3 bd -- このファンクションの最初に戻る
-
+-- 自分と同じ石あり
+--                jibun -> do
+               4 -> do
+                            putStrLn("自分の処理")
+                            bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
+                            return bd4
 -- コマなし
-        2 -> do
-                 let hkrWorkList = []
-                 let hkrFinalList = []
-                 hkrListKekka <- func5 bd 0 (pyn, pxn) s sLen hkrWorkList hkrFinalList
-
+               2 -> do
+                        print "2の処理"
+                        let hkrWorkList = []
+                        let hkrFinalList = []
+--                      hkrListKekka <- func5 bd 0 (pyn, pxn) s sLen hkrWorkList hkrFinalList jibun aite
+                        hkrListKekka <- func5 bd 0 (pyn, pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite
 -- ひっくり返し処理
-                 let hkrListKekkaLen = length hkrListKekka
-                 bd2 <- func7 bd hkrListKekka hkrListKekkaLen 4
-
-                 func8 bd2    -- 表示処理
-
-                 return bd2
-
-        _ -> do
-                 return bd
+                        let hkrListKekkaLen = length hkrListKekka 
+                        bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun 
+                        func8 bd2    -- 表示処理
+                        return bd2
+               _ -> do
+                        print "_を処理"
+                        return bd
+    return bd3
 
 
 -- 置き場所入力
@@ -437,23 +444,28 @@ func2 = do
 
 
 -- start
+func1 :: UArray (Int, Int) Int -> IO(UArray (Int, Int) Int)
 func1 bd = do
 
     func8 bd    -- 表示処理
 
 -- 黒番
+    let jibun = 4    -- 黒
+    let aite = 3    -- 白
     putStrLn("黒番です")
-    bd2 <- func3 bd
---    func8 bd2
+    bd2 <- func3 bd jibun aite
+    func8 bd2
     let bd = bd2
 
 -- 白版
+    let jibun = 3
+    let aite = 4  
     putStrLn("白番です")
 -- 置けるところを探す
     let py = 8
     let px = 8
 
-    okeruList <- func10 bd py px []
+    okeruList <- func10 bd py px [] jibun aite
 -- 置けるところに「！」を表示する
     let okeruListLen = length okeruList
     bd2 <- func7 bd okeruList okeruListLen 5 
@@ -467,14 +479,32 @@ func1 bd = do
 
     let okibasyo = okeruList !! (okibasyoNum-1)
 
-    let bd3 = bd2 Data.Array.Unboxed.// [(okibasyo,3)]
+    let hkrWorkList = []
+    let hkrFinalList = []
+    hkrListKekka <- func5 bd2 0 okibasyo muki mukiLen hkrWorkList hkrFinalList jibun aite
+
+-- ひっくり返し処理
+    let hkrListKekkaLen = length hkrListKekka
+    bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun    -- 白で更新
+
+    func8 bd2    -- 表示処理
+
+
+
+--     let bd3 = bd2 Data.Array.Unboxed.// [(okibasyo,3)]
 --    putStrLn("bd3 = " ++ show bd3)
 
-    func8 bd3
+--     func8 bd3
 -- ひっくり返し処理
 
+
+
+
+
+
+
 -- 黒番に戻る
-    func1 bd3
+    func1 bd2
 
 
 main :: IO ()
