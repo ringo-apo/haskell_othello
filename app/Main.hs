@@ -2,7 +2,7 @@
 
 module Main (main) where
 
-import Lib
+-- import Lib
 import Text.Read (readMaybe)
 import Text.Regex.Posix
 import Data.Array
@@ -59,28 +59,51 @@ func12 bd (y,x) i s status jibun aite = do
                             return Nothing
                    else do
                             let atai3 = bd Data.Array.Unboxed.! (y,x)
-                            status3 <- case atai3 of
-                                           2 -> do    -- コマなし
+--                             status3 <- case atai3 of
+--                                            2 -> do    -- コマなし
+--                                                     return Nothing
+
+--                                            jibun -> do    -- 自分と同じ色のコマあり。挟めている
+--                                                     return (Just True)
+
+--                                            aite -> do    -- 相手と同じ色のコマあり。相手のコマが続くので更に調べる　再帰
+
+--                                                     let (sy,sx) = (s !! i)
+
+--                                                     let y2 = y + sy
+
+--                                                     let x2 = x + sx
+
+--                                                     let pos4 = (y2,x2)
+
+--                                                     status2 <- func12 bd pos4 i s status jibun aite
+--                                                     return status2
+
+--                                            _ -> do
+--                                                     return Nothing
+
+                            status3 <- if atai3 == 2
+                                           then do
                                                     return Nothing
+                                           else if atai3 == jibun
+                                                    then do
+                                                             return (Just True)
+                                                    else if atai3 == aite
+                                                             then do
+                                                                      let (sy,sx) = (s !! i)
 
-                                           jibun -> do    -- 自分と同じ色のコマあり。挟めている
-                                                    return (Just True)
+                                                                      let y2 = y + sy
 
-                                           aite -> do    -- 相手と同じ色のコマあり。相手のコマが続くので更に調べる　再帰
+                                                                      let x2 = x + sx
 
-                                                    let (sy,sx) = (s !! i)
+                                                                      let pos4 = (y2,x2)
 
-                                                    let y2 = y + sy
+                                                                      status2 <- func12 bd pos4 i s status jibun aite
+                                                                      return status2
+                                                             else do
+                                                                      return Nothing
 
-                                                    let x2 = x + sx
 
-                                                    let pos4 = (y2,x2)
-
-                                                    status2 <- func12 bd pos4 i s status jibun aite
-                                                    return status2
-
-                                           _ -> do
-                                                    return Nothing
                             return status3
     return status4
 
@@ -94,8 +117,26 @@ func11 bd py px okeruList jibun aite = do
                       else do
                                let atai = bd Data.Array.Unboxed.! (py,px)
 
-                               okeruList3 <- case atai of
-                                                 2 -> do
+--                                okeruList3 <- case atai of
+--                                                  2 -> do
+--                                                           kekka <- func9 bd py px (mukiLen-1) (Nothing) jibun aite    -- 周りを知らべる
+--                                                           let okeruList2 = case kekka of
+--                                                                             Just True -> okeruList ++ [(py, px)]
+--                                                                             Just False -> okeruList
+--                                                                             Nothing -> okeruList
+--                                                                             _ -> okeruList
+--                                                           return okeruList2
+
+--                                                  jibun -> do    -- 自分と同じ色のコマ 
+--                                                           return okeruList
+
+--                                                  aite -> do    -- 相手と同じ色のコマ
+--                                                           return okeruList
+--                                                  _ -> do
+--                                                           return okeruList
+
+                               okeruList3 <- if atai == 2 
+                                                 then do
                                                           kekka <- func9 bd py px (mukiLen-1) (Nothing) jibun aite    -- 周りを知らべる
                                                           let okeruList2 = case kekka of
                                                                             Just True -> okeruList ++ [(py, px)]
@@ -103,14 +144,14 @@ func11 bd py px okeruList jibun aite = do
                                                                             Nothing -> okeruList
                                                                             _ -> okeruList
                                                           return okeruList2
-
-                                                 jibun -> do    -- 自分と同じ色のコマ 
-                                                          return okeruList
-
-                                                 aite -> do    -- 相手と同じ色のコマ
-                                                          return okeruList
-                                                 _ -> do
-                                                          return okeruList
+                                                 else if atai == jibun
+                                                          then do
+                                                                   return okeruList
+                                                          else if atai == aite
+                                                                   then do
+                                                                            return okeruList
+                                                                   else do
+                                                                            return okeruList
 
                                func11 bd py (px-1) okeruList3 jibun aite
     return okeruList4
@@ -139,15 +180,21 @@ func9 bd py px mukii status jibun aite = do
                             let pmy = py + piy
                             let pmx = px + pix
                             let ataim = bd Data.Array.Unboxed.! (pmy,pmx)
-                            status3 <- case ataim of
-                                           aite -> do -- 相手と同じ色のコマあり
+--                             status3 <- case ataim of
+--                                            aite -> do -- 相手と同じ色のコマあり
 -- 隣の隣を調べる
+--                                                     status2 <- func12 bd (pmy,pmx) mukii muki status jibun aite    -- 継続操作
+--                                                     return status2
+
+--                                            _ -> do
+--                                                     return status
+
+                            status3 <- if ataim == aite
+                                           then do
                                                     status2 <- func12 bd (pmy,pmx) mukii muki status jibun aite    -- 継続操作
-                                                    return status2
-
-                                           _ -> do
+                                                    return status2       
+                                           else do
                                                     return status
-
 
                             status4 <- func9 bd py px (mukii-1) status3 jibun aite    -- 次の方向を調べる
                             return status4
@@ -266,26 +313,43 @@ func6 bd (y,x) hkrList2 i muki jibun aite = do
                              return []
                     else do
                              let atai3 = bd Data.Array.Unboxed.! (y,x)
-                             hkrList4 <- case atai3 of
-                                             2     -> do
-                                                          return []
+--                              hkrList4 <- case atai3 of
+--                                              2     -> do
+--                                                           return []
 -- 自分と同じ色のコマあり。挟めている
-                                             jibun -> do
-                                                          return hkrList2
+--                                              jibun -> do
+--                                                           return hkrList2
 -- 相手のコマが続くので更に調べる　再帰
-                                             aite  -> do
-                                                         let hkrList3 = hkrList2 ++ [(y,x)]
-                                                         let (sy,sx) = (muki !! i)
-                                                         let y2 = y + sy
-                                                         let x2 = x + sx
-                                                         let pos4 = (y2,x2)
-                                                         hkrList6 <- func6 bd pos4 hkrList3 i muki jibun aite
---                                                          hkrList6 <- func6 bd pos4 [(1,1),(2,2)] i [(1,1),(2,2)] jibun aite
-                                                         return hkrList6
+--                                              aite  -> do
+--                                                          let hkrList3 = hkrList2 ++ [(y,x)]
+--                                                          let (sy,sx) = (muki !! i)
+--                                                          let y2 = y + sy
+--                                                          let x2 = x + sx
+--                                                          let pos4 = (y2,x2)
+--                                                          hkrList6 <- func6 bd pos4 hkrList3 i muki jibun aite
+--                                                          return hkrList6
 
-                                             _     -> return []
+--                                              _     -> return []
+
+                             hkrList4 <- if atai3 == 2 
+                                             then do
+                                                      return []
+                                             else if atai3 == jibun
+                                                      then do
+                                                               return hkrList2
+                                                      else if atai3 == aite
+                                                               then do
+                                                                        let hkrList3 = hkrList2 ++ [(y,x)]
+                                                                        let (sy,sx) = (muki !! i)
+                                                                        let y2 = y + sy
+                                                                        let x2 = x + sx
+                                                                        let pos4 = (y2,x2)
+                                                                        hkrList6 <- func6 bd pos4 hkrList3 i muki jibun aite
+                                                                        return hkrList6
+                                                               else do
+                                                                        return []
+
                              return hkrList4
---                              return ([(1,1),(2,2)])
     return hkrList5
 
 
@@ -309,27 +373,47 @@ func5 bd i (pyn,pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite = do
                                else do
                                         let atai = bd Data.Array.Unboxed.! (posY2, posX2)
 
-                                        hkrList4 <- case atai of
+--                                         hkrList4 <- case atai of
 
 -- コマなし
-                                                        2 -> do
-                                                                 return []
+--                                                         2 -> do
+--                                                                  return []
 -- 自分と同じ石
-                                                        jibun -> do
-                                                                 return []
+--                                                         jibun -> do
+--                                                                  return []
 
 -- 相手と同じ石
-                                                        aite -> do
-                                                                 let hkrList2 = [(pyn, pxn), (posY2, posX2)]
+--                                                         aite -> do
+--                                                                  let hkrList2 = [(pyn, pxn), (posY2, posX2)]
 
-                                                                 let pos3 = (posY2 + y, posX2 + x)
+--                                                                  let pos3 = (posY2 + y, posX2 + x)
 
-                                                                 hkrList3 <- func6 bd pos3 hkrList2 i muki jibun aite
+--                                                                  hkrList3 <- func6 bd pos3 hkrList2 i muki jibun aite
 
-                                                                 return hkrList3
+--                                                                  return hkrList3
 
-                                                        _ -> do
+--                                                         _ -> do
+--                                                                  return []
+
+                                        hkrList4 <- if atai == 2
+                                                        then do
                                                                  return []
+                                                        else if atai == jibun
+                                                                 then do
+                                                                          return []
+                                                                 else if atai == aite
+                                                                         then do
+                                                                                  let hkrList2 = [(pyn, pxn), (posY2, posX2)]
+                                                                                  let pos3 = (posY2 + y, posX2 + x)
+                                                                                  hkrList3 <- func6 bd pos3 hkrList2 i muki jibun aite
+                                                                                  return hkrList3
+                                                                         else do
+                                                                                  return []
+
+ 
+
+
+
                                         return hkrList4
 
                let hkrList6 = hkrFinalList ++ hkrList5
@@ -391,35 +475,65 @@ func3 bd jibun aite = do
     print ("aite = " ++ show aite)
 
 -- 相手の同じ石あり
-    bd3 <- case a of
+--     bd3 <- case a of
 --                aite -> do
-               3 -> do
-                           print ("aite = " ++ show aite)
-                           putStrLn( "相手の処理")
-                           bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
-                           return bd4
+--                3 -> do
+--                            print ("aite = " ++ show aite)
+--                            putStrLn( "相手の処理")
+--                            bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
+--                            return bd4
 
 -- 自分と同じ石あり
 --                jibun -> do
-               4 -> do
-                            putStrLn("自分の処理")
-                            bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
-                            return bd4
+--                4 -> do
+--                             putStrLn("自分の処理")
+--                             bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
+--                             return bd4
 -- コマなし
-               2 -> do
-                        print "2の処理"
-                        let hkrWorkList = []
-                        let hkrFinalList = []
+--                2 -> do
+--                         print "2の処理"
+--                         let hkrWorkList = []
+--                         let hkrFinalList = []
 --                      hkrListKekka <- func5 bd 0 (pyn, pxn) s sLen hkrWorkList hkrFinalList jibun aite
-                        hkrListKekka <- func5 bd 0 (pyn, pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite
+--                         hkrListKekka <- func5 bd 0 (pyn, pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite
 -- ひっくり返し処理
-                        let hkrListKekkaLen = length hkrListKekka 
-                        bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun 
-                        func8 bd2    -- 表示処理
-                        return bd2
-               _ -> do
-                        print "_を処理"
-                        return bd
+--                         let hkrListKekkaLen = length hkrListKekka 
+--                         bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun 
+--                         func8 bd2    -- 表示処理
+--                         return bd2
+--                _ -> do
+--                         print "_を処理"
+--                         return bd
+
+    bd3 <- if a == aite
+               then do
+                        print ("aite = " ++ show aite)
+                        uprint("aite no syori")
+                        bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
+                        return bd4
+               else if a == jibun 
+                        then do
+                                 putStrLn("jibun no syori")
+                                 bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
+                                 return bd4
+                        else if a == 2 
+                                 then do
+                                          print "2 no syori"
+                                          let hkrWorkList = []
+                                          let hkrFinalList = []
+                                          hkrListKekka <- func5 bd 0 (pyn, pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite
+-- ひっくり返し処理
+                                          let hkrListKekkaLen = length hkrListKekka 
+                                          bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun 
+                                          func8 bd2    -- 表示処理
+                                          return bd2
+                                 else do
+                                          print "_を処理"
+                                          return bd
+
+
+
+
     return bd3
 
 
@@ -509,7 +623,7 @@ func1 bd = do
 
 main :: IO ()
 main = do
-    someFunc
+--     someFunc
 
     let bd = data0
 
