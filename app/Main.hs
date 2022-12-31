@@ -52,9 +52,6 @@ px = 8
 
 pass = 0
 
--- kekka :: (UArray(Int, Int) Int, Int)
--- kekka = ([(0,0),0],0)
-
 
 -- コマを数える　ｘ
 -- func16 :: UArray (Int, Int) Int -> Int -> Int -> Int -> Int -> IO(Int)
@@ -90,22 +87,18 @@ func15 bd py px koma num = do
 -- Kuro ban
 -- func14 :: UArray (Int, Int) Int -> Int -> IO((UArray(Int,Int) Int, Int))
 func14 bd pass = do
---     let teban = 4    -- 黒
     let jibun = 4    -- 黒
     let aite = 3    -- 白
-    putStrLn("黒番です")
-
 -- 置けるところを探す
     okeruList <- func10 bd py px [] jibun aite
 -- 置けるところに「！」を表示する
     let okeruListLen = length okeruList
-
     (bd2, pass3) <- if okeruListLen /= 0 
                         then do
                                  bd2 <- func7 bd okeruList okeruListLen 5    -- 盤面変更処理
                                  func8 bd2
                                  bd2 <- func3 bd jibun aite    -- 入力処理
-                                 func8 bd2    -- 表示処理
+--                                  func8 bd2    -- 表示処理
                                  let bd = bd2
                                  return (bd2, 0)
                         else do
@@ -124,22 +117,16 @@ func13 bd pass = do
     okeruList <- func10 bd py px [] jibun aite
 -- 置けるところに「！」を表示する
     let okeruListLen = length okeruList
-
     (bd3, pass3) <- if okeruListLen /= 0
                         then do
                                  bd2 <- func7 bd okeruList okeruListLen 5    -- 盤面変更処理
-
                                  gen <- createSystemRandom
                                  okibasyoNum <- uniformR(1,okeruListLen) gen :: IO Int
-
                                  putStrLn("置き場所 = " ++ show (okeruList !! (okibasyoNum-1)))    
-
                                  let okibasyo = okeruList !! (okibasyoNum-1)
-
                                  let hkrWorkList = []
                                  let hkrFinalList = []
                                  hkrListKekka <- func5 bd2 0 okibasyo muki mukiLen hkrWorkList hkrFinalList jibun aite
-
 -- ひっくり返し処理
                                  let hkrListKekkaLen = length hkrListKekka
                                  bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun    -- 盤面変更処理
@@ -150,7 +137,6 @@ func13 bd pass = do
                                  let pass2 = pass + 1
                                  print("pass")
                                  return  (bd, pass2)
-
     return (bd3, pass3)
 
 
@@ -184,8 +170,6 @@ func12 bd (y,x) i s status jibun aite = do
                                                                       return status2
                                                              else do
                                                                       return Nothing
-
-
                             return status3
     return status4
 
@@ -216,7 +200,6 @@ func11 bd py px okeruList jibun aite = do
                                                                             return okeruList
                                                                    else do
                                                                             return okeruList
-
                                func11 bd py (px-1) okeruList3 jibun aite
     return okeruList4
 
@@ -244,14 +227,12 @@ func9 bd py px mukii status jibun aite = do
                             let pmy = py + piy
                             let pmx = px + pix
                             let ataim = bd Data.Array.Unboxed.! (pmy,pmx)
-
                             status3 <- if ataim == aite
                                            then do
                                                     status2 <- func12 bd (pmy,pmx) mukii muki status jibun aite    -- 継続操作
                                                     return status2       
                                            else do
                                                     return status
-
                             status4 <- func9 bd py px (mukii-1) status3 jibun aite    -- 次の方向を調べる
                             return status4
     return status5
@@ -343,10 +324,10 @@ func8 bd = do
                  (func4 (bd Data.Array.Unboxed.! (8,8))) ++ "＊")
     putStrLn ("　＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊")
     putStrLn ("Ｙ")
-    putStrLn ("[　] 0:nothing")
-    putStrLn ("[〇] 1:Black")
-    putStrLn ("[●] 2:White")
-
+    putStrLn ("[　]:コマなし")
+    putStrLn ("[〇]:黒")
+    putStrLn ("[●]:白")
+    putStrLn ("[！]:置けるところ")
 
 -- 盤面変更処理
 -- func7 UArray (Int, Int) Int -> [(Int, Int)] -> Int -> Int -> IO(UArray (Int,Int) Int)
@@ -387,7 +368,6 @@ func6 bd (y,x) hkrList2 i muki jibun aite = do
                                                                         return hkrList6
                                                                else do
                                                                         return []
-
                              return hkrList4
     return hkrList5
 
@@ -426,11 +406,6 @@ func5 bd i (pyn,pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite = do
                                                                                   return hkrList3
                                                                          else do
                                                                                   return []
-
- 
-
-
-
                                         return hkrList4
 
                let hkrList6 = hkrFinalList ++ hkrList5
@@ -449,19 +424,16 @@ func4 ua1 = do
 -- そこにコマがないかどうか、なければfunc5に処理を移す
 -- func3 :: UArray(Int, Int) Int -> Int -> Int -> IO(UArray (Int,Int) Int)
 func3 bd jibun aite = do
-    print ("aite =" ++ show aite)
+--     print ("aite =" ++ show aite)
 
-    print ("aite = " ++ show aite)
+--     print ("aite = " ++ show aite)
     command <- func2
-    print ("aite = " ++ show aite)
-    putStrLn("command = " ++ command)
+--     print ("aite = " ++ show aite)
+--     putStrLn("command = " ++ command)
 
     let py = command !! 1 -- ２文字目　Ｙ座標
-
     let pyn = read [py] :: Int
-
     let pxa = command !! 0 -- １文字目　Ｘ座標
-
     let px = case pxa of
                         'a' -> '1'
                         'b' -> '2'
@@ -476,30 +448,30 @@ func3 bd jibun aite = do
     let pxn = read [px] :: Int
 
     let a = bd Data.Array.Unboxed.! (pyn, pxn) -- 選択場所の値を取得
-    print ("a = " ++ show a)
-    print ("aite = " ++ show aite)
+--     print ("a = " ++ show a)
+--     print ("aite = " ++ show aite)
 
     bd3 <- if a == aite
                then do
-                        print ("aite = " ++ show aite)
-                        uprint("aite no syori")
+--                         print ("aite = " ++ show aite)
+--                         uprint("aite no syori")
                         bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
                         return bd4
                else if a == jibun 
                         then do
-                                 putStrLn("jibun no syori")
+--                                  putStrLn("jibun no syori")
                                  bd4 <- func3 bd jibun aite    -- このファンクションの最初に戻る
                                  return bd4
                         else if a == 2 
                                  then do
-                                          print "2 no syori"
+--                                           print "2 no syori"
                                           let hkrWorkList = []
                                           let hkrFinalList = []
                                           hkrListKekka <- func5 bd 0 (pyn, pxn) muki mukiLen hkrWorkList hkrFinalList jibun aite
 -- ひっくり返し処理
                                           let hkrListKekkaLen = length hkrListKekka 
                                           bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun 
---                                           func8 bd2    -- 表示処理
+                                          func8 bd2    -- 表示処理
                                           return bd2
                                  else do
                                           print "_を処理"
@@ -524,33 +496,31 @@ func2 = do
                 func2 -- やり直し
 
           | otherwise -> do
-                putStrLn ("You selected " ++ a)
+--                 putStrLn ("You selected " ++ a)
                 return a
 
 
 -- mainloop処理
 func1 :: UArray (Int, Int) Int -> Int -> Int -> IO(UArray (Int, Int) Int)
 func1 bd pass teban = do
-
-    func8 bd    -- 表示処理
-
+--     func8 bd    -- 表示処理
     bd5 <- if pass == 2 
-               then return (bd)
+               then return bd
                else do
                         bd4 <- case teban of
                                    4 -> do    -- 黒
                                             putStrLn("黒番です")
                                             (bd2, pass2) <- func14 bd pass
                                             bd3 <- func1 bd2 pass2 3
-                                            return (bd3)
+                                            return bd3
                                    3 -> do    -- 白
                                             putStrLn("白番です")
                                             (bd2, pass2) <- func13 bd pass
                                             bd3 <- func1 bd2 pass2 4
-                                            return (bd3)
+                                            return bd3
                                    _ -> do
                                             print("error")
-                                            return (bd)
+                                            return bd
                         return bd4
     return bd5
 
@@ -558,27 +528,24 @@ main :: IO ()
 main = do
 
     let bd = data0
-
     bd2 <- func1 bd 0 4    -- mainloop処理
 
 -- コマを数える
     putStrLn("終了です")
     kuroN <- func15 bd2 py px 4 0
-    print ("kuroN = " ++ show kuroN) 
+    putStrLn("黒のコマの数 : " ++ show kuroN) 
 
     shiroN <- func15 bd2 py px 3 0
-    print ("shiroN = " ++ show shiroN)
+    putStrLn("白のコマの数 : " ++ show shiroN)
 
     win <- if kuroN == shiroN
                then do
-                        return "Even"
+                        return "引き分け"
                else if kuroN > shiroN 
                         then do
-                                 return "Win kuro"
+                                 return "黒の勝ち"
                         else do
-                                 return "Win shiro"
-
-    print win
-
+                                 return "白の勝ち"
+    putStrLn(win)
     return ()
 
