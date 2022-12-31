@@ -50,6 +50,109 @@ mukiLen = length muki
 py = 8
 px = 8
 
+pass = 0
+
+-- kekka :: (UArray(Int, Int) Int, Int)
+-- kekka = ([(0,0),0],0)
+
+
+-- コマを数える　ｘ
+-- func16 :: UArray (Int, Int) Int -> Int -> Int -> Int -> Int -> IO(Int)
+func16 bd py px koma num = do
+                               num5 <- if px < 1
+                                           then do
+                                                    return num 
+                                           else do
+                                                    let atai = bd Data.Array.Unboxed.! (py, px) 
+                                                    num3 <- if atai == koma
+                                                                then do
+                                                                         let num2 = num + 1
+                                                                         return num2
+                                                                else do
+                                                                         return num
+                                                    num4 <- func16 bd py (px-1) koma num3
+                                                    return num4 
+                               return num5
+
+-- コマを数える　ｙ
+-- func15 :: UArray (Int,Int) Int -> Int -> Int -> Int -> Int -> IO(Int)
+func15 bd py px koma num = do
+    num4 <- if py < 1
+                then do
+                         return num
+                else do
+                         (num2) <- func16 bd py px koma num
+                         num3 <- func15 bd (py-1) 8 koma num2
+                         return num3
+    return num4
+
+
+-- Kuro ban
+-- func14 :: UArray (Int, Int) Int -> Int -> IO((UArray(Int,Int) Int, Int))
+func14 bd pass = do
+--     let teban = 4    -- 黒
+    let jibun = 4    -- 黒
+    let aite = 3    -- 白
+    putStrLn("黒番です")
+
+-- 置けるところを探す
+    okeruList <- func10 bd py px [] jibun aite
+-- 置けるところに「！」を表示する
+    let okeruListLen = length okeruList
+
+    (bd2, pass3) <- if okeruListLen /= 0 
+                        then do
+                                 bd2 <- func7 bd okeruList okeruListLen 5    -- 盤面変更処理
+                                 func8 bd2
+                                 bd2 <- func3 bd jibun aite    -- 入力処理
+                                 func8 bd2    -- 表示処理
+                                 let bd = bd2
+                                 return (bd2, 0)
+                        else do
+                                 let pass2 = pass + 1
+                                 print("pass")
+                                 return (bd, pass2)
+    return (bd2, pass3)
+
+
+-- Shiro ban
+-- func13 :: UArray (Int, Int) Int -> Int -> IO((UArray(Int, Int) Int, Int)) 
+func13 bd pass = do
+    let jibun = 3
+    let aite = 4  
+-- 置けるところを探す
+    okeruList <- func10 bd py px [] jibun aite
+-- 置けるところに「！」を表示する
+    let okeruListLen = length okeruList
+
+    (bd3, pass3) <- if okeruListLen /= 0
+                        then do
+                                 bd2 <- func7 bd okeruList okeruListLen 5    -- 盤面変更処理
+
+                                 gen <- createSystemRandom
+                                 okibasyoNum <- uniformR(1,okeruListLen) gen :: IO Int
+
+                                 putStrLn("置き場所 = " ++ show (okeruList !! (okibasyoNum-1)))    
+
+                                 let okibasyo = okeruList !! (okibasyoNum-1)
+
+                                 let hkrWorkList = []
+                                 let hkrFinalList = []
+                                 hkrListKekka <- func5 bd2 0 okibasyo muki mukiLen hkrWorkList hkrFinalList jibun aite
+
+-- ひっくり返し処理
+                                 let hkrListKekkaLen = length hkrListKekka
+                                 bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun    -- 盤面変更処理
+                                 return (bd2, 0)
+
+-- 置き場所を選ぶ
+                        else do
+                                 let pass2 = pass + 1
+                                 print("pass")
+                                 return  (bd, pass2)
+
+    return (bd3, pass3)
+
 
 -- 隣の隣を調べる
 func12 :: UArray (Int,Int) Int -> (Int, Int) -> Int -> [(Int, Int)] -> Maybe Bool -> Int -> Int -> IO (Maybe Bool)
@@ -425,93 +528,57 @@ func2 = do
                 return a
 
 
--- start
-func1 :: UArray (Int, Int) Int -> IO(UArray (Int, Int) Int)
-func1 bd = do
+-- mainloop処理
+func1 :: UArray (Int, Int) Int -> Int -> Int -> IO(UArray (Int, Int) Int)
+func1 bd pass teban = do
 
     func8 bd    -- 表示処理
 
--- 黒番
-    let jibun = 4    -- 黒
-    let aite = 3    -- 白
-    putStrLn("黒番です")
-
--- 置けるところを探す
-    okeruList <- func10 bd py px [] jibun aite
--- 置けるところに「！」を表示する
-    let okeruListLen = length okeruList
-    bd2 <- func7 bd okeruList okeruListLen 5 
-    func8 bd2    -- 表示処理
-
-
-
-
-
-    bd2 <- func3 bd jibun aite
-    func8 bd2
-    let bd = bd2
-
--- 白版
-    let jibun = 3
-    let aite = 4  
-    putStrLn("白番です")
--- 置けるところを探す
---     let py = 8
---     let px = 8
-
-    okeruList <- func10 bd py px [] jibun aite
--- 置けるところに「！」を表示する
-    let okeruListLen = length okeruList
-    bd2 <- func7 bd okeruList okeruListLen 5 
---     func8 bd2    -- 表示処理
-
--- 置き場所を選ぶ
-    if okeruListLen == 0
-        then do
-                 print("pass")
-                 func1 bd2
-        else do
-                 gen <- createSystemRandom
-                 okibasyoNum <- uniformR(1,okeruListLen) gen :: IO Int
-
-                 putStrLn("置き場所 = " ++ show (okeruList !! (okibasyoNum-1)))    
-
-                 let okibasyo = okeruList !! (okibasyoNum-1)
-
-                 let hkrWorkList = []
-                 let hkrFinalList = []
-                 hkrListKekka <- func5 bd2 0 okibasyo muki mukiLen hkrWorkList hkrFinalList jibun aite
-
--- ひっくり返し処理
-                 let hkrListKekkaLen = length hkrListKekka
-                 bd2 <- func7 bd hkrListKekka hkrListKekkaLen jibun    -- 白で更新
-
---                  func8 bd2    -- 表示処理
-
-
-
---     let bd3 = bd2 Data.Array.Unboxed.// [(okibasyo,3)]
---    putStrLn("bd3 = " ++ show bd3)
-
---     func8 bd3
--- ひっくり返し処理
-
-
-
-
-
-
-
--- 黒番に戻る
-                 func1 bd2
-
+    bd5 <- if pass == 2 
+               then return (bd)
+               else do
+                        bd4 <- case teban of
+                                   4 -> do    -- 黒
+                                            putStrLn("黒番です")
+                                            (bd2, pass2) <- func14 bd pass
+                                            bd3 <- func1 bd2 pass2 3
+                                            return (bd3)
+                                   3 -> do    -- 白
+                                            putStrLn("白番です")
+                                            (bd2, pass2) <- func13 bd pass
+                                            bd3 <- func1 bd2 pass2 4
+                                            return (bd3)
+                                   _ -> do
+                                            print("error")
+                                            return (bd)
+                        return bd4
+    return bd5
 
 main :: IO ()
 main = do
 
     let bd = data0
 
-    func1 bd
+    bd2 <- func1 bd 0 4    -- mainloop処理
+
+-- コマを数える
+    putStrLn("終了です")
+    kuroN <- func15 bd2 py px 4 0
+    print ("kuroN = " ++ show kuroN) 
+
+    shiroN <- func15 bd2 py px 3 0
+    print ("shiroN = " ++ show shiroN)
+
+    win <- if kuroN == shiroN
+               then do
+                        return "Even"
+               else if kuroN > shiroN 
+                        then do
+                                 return "Win kuro"
+                        else do
+                                 return "Win shiro"
+
+    print win
 
     return ()
 
